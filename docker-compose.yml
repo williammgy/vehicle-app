@@ -1,0 +1,27 @@
+version: "3.8"
+
+networks:
+  default:
+    name: arengi_test
+
+services:
+  app:
+    container_name: app
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    env_file: .env
+    
+  db:
+    container_name: db
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DATABASE_NAME}
+      MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
+      MYSQL_USER: ${DATABASE_USER}
+      MYSQL_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "3307:3306"

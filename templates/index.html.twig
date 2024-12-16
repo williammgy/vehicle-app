@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Véhicules{% endblock %}
+
+{% block body %}
+    {% if app.user %}
+        <a href="{{ path('app_logout') }}">Se déconnecter</a>
+    {% else %}
+        <a href="{{ path('app_login') }}">Se connecter</a>
+    {% endif %}
+
+    <h1>Liste des véhicules</h1>
+
+    <a href="{{ path('vehicle_creation') }}">
+        Nouveau véhicule
+    </a>
+
+    {{ form_start(form) }}
+        {{ form_row(form.brand) }}
+        {{ form_row(form.type) }}
+        {{ form_row(form.seats_amount) }}
+        {{ form_row(form.submit) }}
+        <button type="submit" formaction="{{ path('filters_reset') }}">
+            Effacer les filtres
+        </button>
+    {{ form_end(form) }}
+
+    <strong>Total de véhicules : {{ vehicles_amount }}</strong>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Modèle</th>
+                <th>Marque</th>
+                <th>Type</th>
+                <th>Nombre de places</th>
+                <th>Couleur</th>
+                <th>PTRA</th>
+                {% if app.user %}
+                    <th>Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for vehicle in vehicles %}
+                <tr>
+                    <td>{{ vehicle.label }}</td>
+                    <td>{{ vehicle.brand }}</td>
+                    <td>{{ vehicle.type.label }}</td>
+                    <td>{{ vehicle.seatsAmount }}</td>
+                    <td>{{ vehicle.color ?? '-' }}</td/>
+                    <td>{{ vehicle.type.requiresGVWR() ? vehicle.gvwr : '-' }}</td>
+                    {% if app.user %}
+                        <td>
+                            <a href="{{ path('vehicle_update', { 'id': vehicle.id }) }}">
+                                Éditer
+                            </a>
+
+                            <form action="{{ path('vehicle_deletion', { 'id': vehicle.id }) }}" method="POST" onsubmit="return confirmDeletion(event);">
+                                <button type="submit">Supprimer</button>
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ vehicle.id) }}">
+                            </form>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="pagination">
+        {% if page > 1 %}
+            <a href="{{ path('home', { 'page': page - 1 }) }}">Précédent</a>
+        {% endif %}
+
+        {% for i in 1..total_pages %}
+            {% if i == page %}
+                {{ i }}
+            {% else %}
+                <a href="{{ path('home', { 'page': i }) }}" {% if i == page %}class="active"{% endif %}>{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if page < total_pages %}
+            <a href="{{ path('home', { 'page': page + 1 }) }}">Suivant</a>
+        {% endif %}
+    </div>
+
+    <script>
+        function confirmDeletion(event) {
+            if (!confirm('Supprimer ce véhicule ?')) {
+                event.preventDefault();
+            }
+        }
+    </script>
+{% endblock %}
